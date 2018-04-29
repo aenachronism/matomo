@@ -92,6 +92,19 @@ abstract class SystemTestCase extends PHPUnit_Framework_TestCase
         $fixture->performTearDown();
     }
 
+    protected function tearDown()
+    {
+        $refl = new \ReflectionObject($this);
+        foreach ($refl->getProperties() as $prop) {
+            if (!$prop->isStatic() && 0 !== strpos($prop->getDeclaringClass()->getName(), 'PHPUnit_')) {
+                $prop->setAccessible(true);
+                $prop->setValue($this, null);
+            }
+        }
+
+        parent::tearDown();
+    }
+
     /**
      * Returns true if continuous integration running this request
      * Useful to exclude tests which may fail only on this setup

@@ -96,10 +96,18 @@ abstract class IntegrationTestCase extends SystemTestCase
     /**
      * Resets all caches and drops the database
      */
-    public function tearDown()
+    protected function tearDown()
     {
         static::$fixture->clearInMemoryCaches();
         static::$fixture->destroyEnvironment();
+
+        $refl = new \ReflectionObject($this);
+        foreach ($refl->getProperties() as $prop) {
+            if (!$prop->isStatic() && 0 !== strpos($prop->getDeclaringClass()->getName(), 'PHPUnit_')) {
+                $prop->setAccessible(true);
+                $prop->setValue($this, null);
+            }
+        }
 
         parent::tearDown();
     }

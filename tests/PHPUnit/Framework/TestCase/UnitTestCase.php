@@ -35,9 +35,17 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase
         File::reset();
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
         File::reset();
+
+        $refl = new \ReflectionObject($this);
+        foreach ($refl->getProperties() as $prop) {
+            if (!$prop->isStatic() && 0 !== strpos($prop->getDeclaringClass()->getName(), 'PHPUnit_')) {
+                $prop->setAccessible(true);
+                $prop->setValue($this, null);
+            }
+        }
 
         // make sure the global container exists for the next test case that is executed (since logging can be done
         // before a test sets up an environment)
